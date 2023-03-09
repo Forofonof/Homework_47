@@ -6,27 +6,31 @@ class Program
     static void Main(string[] args)
     {
         Aquarium aquarium = new Aquarium();
+        Menu menu = new Menu(aquarium);
 
-        aquarium.Work();
+        menu.Work();
     }
 }
 
-class Aquarium
+class Menu
 {
-    private const string CommandAddFish = "1";
-    private const string CommandRemoveFish = "2";
-    private const string CommandSkip = "3";
-    private const string CommandExit = "4";
+    private Aquarium _aquarium;
 
-    private int _totalСapacity = 15;
-
-    private List<Fish> _fishes = new List<Fish>();
-    private Random _random = new Random();
-    private FishFactory _fishCreator = new FishFactory();
+    public Menu(Aquarium aquarium)
+    {
+        _aquarium = aquarium;
+    }
 
     public void Work()
     {
-        while (true)
+        const string CommandAddFish = "1";
+        const string CommandRemoveFish = "2";
+        const string CommandSkip = "3";
+        const string CommandExit = "4";
+
+        bool isWork = true;
+
+        while (isWork)
         {
             Console.WriteLine($"{CommandAddFish} - Добавить рыбку.\n{CommandRemoveFish} - Убрать рыбку.\n{CommandSkip} - Пропустить один цикл.\n{CommandExit} - Выход.");
             string userInput = Console.ReadLine();
@@ -34,32 +38,42 @@ class Aquarium
             switch (userInput)
             {
                 case CommandAddFish:
-                    AddFish();
+                    _aquarium.AddFish();
                     break;
 
                 case CommandRemoveFish:
-                    RemoveFish();
+                    _aquarium.RemoveFish();
                     break;
 
                 case CommandSkip:
-                    SkipLifeCycle();
+                    _aquarium.SkipLifeCycle();
                     break;
 
                 case CommandExit:
-                    return;
+                    isWork = false;
+                    break;
 
                 default:
+                    Console.WriteLine("Ошибка! Нет такой команды.");
                     break;
             }
 
-            ShowInfo();
-            SkipLifeCycle();
+            _aquarium.ShowInfo();
         }
     }
+}
 
-    private void AddFish()
+class Aquarium
+{
+    private int _totalСapacity = 15;
+
+    private FishFactory _fishCreator = new FishFactory();
+    private List<Fish> _fishes = new List<Fish>();
+    private Random _random = new Random();
+
+    public void AddFish()
     {
-        if (_totalСapacity >= _fishes.Count)
+        if (_totalСapacity > _fishes.Count)
         {
             _fishes.Add(_fishCreator.Create());
 
@@ -71,7 +85,7 @@ class Aquarium
         }
     }
 
-    private void RemoveFish()
+    public void RemoveFish()
     {
         if (_fishes.Count > 0)
         {
@@ -86,17 +100,17 @@ class Aquarium
         }
     }
 
-    private void SkipLifeCycle()
+    public void SkipLifeCycle()
     {
-        CheckDeadFish();
+        TryDeleteFishes();
 
         foreach (Fish fish in _fishes)
         {
-            fish.GetOlder();
+            fish.Grow();
         }
     }
 
-    private void ShowInfo()
+    public void ShowInfo()
     {
         if (_fishes.Count > 0)
         {
@@ -111,7 +125,7 @@ class Aquarium
         }
     }
 
-    private void CheckDeadFish()
+    private void TryDeleteFishes()
     {
         List<Fish> deadFish = new List<Fish>();
 
@@ -151,7 +165,7 @@ class Fish
         Console.WriteLine($"{Name} умер, в возрасте: {LifeTime} лет.\n");
     }
 
-    public void GetOlder()
+    public void Grow()
     {
         LifeTime++;
     }
@@ -163,7 +177,7 @@ class FishFactory
     private int _lifeTime = 0;
     private string _name;
 
-    private List<string> _names = new List<string>
+    private string[] _fishNames =
     {
         "Карась", "Сомик", "Меченосец", "Минтай", "Барбус"
     };
@@ -175,7 +189,7 @@ class FishFactory
         int maximumLifeExpectancy = 25;
         int minimumLifeExpectancy = 10;
 
-        _name = _names[_random.Next(0, _names.Count)];
+        _name = _fishNames[_random.Next(_fishNames.Length)];
         _lifeExpectancy = _random.Next(minimumLifeExpectancy, maximumLifeExpectancy);
 
         return new Fish(_lifeExpectancy, _lifeTime, _name);
